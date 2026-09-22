@@ -1,71 +1,56 @@
-Terraform AWS EC2 - Remote Backend & Import | Hands-On
-This repo shows my hands-on with Terraform provisioning an EC2 instance using variables, outputs, and best practices. Currently on local state, migrating to S3 remote backend with DynamoDB locking next.
+Terraform AWS EC2 - Complete Hands-On
+Provisioned EC2 using Terraform from local VS Code, pushed to GitHub, then launched 2nd EC2 via Terraform from within 1st EC2 using IAM Role - Full DevOps workflow.
 
 Architecture
-Local Machine (VS Code)
-      |
-      | terraform apply
-      v
-AWS Provider -> EC2 t3.micro (var.ami, var.instance_type)
-      |
-      |-- Outputs: instance_id, public_ip
-      |
-State: terraform.tfstate (local) -> Next: S3 Bucket + DynamoDB Lock
-What I Implemented (Done)
-Provider: AWS ap-south-1
-EC2: t3.micro using var.ami and var.instance_type
-Variables: Defined in variable.tf with type & description
-Outputs: instance_id and public_ip in output.tf
-Commands Practiced: fmt, validate, init, plan, apply, output, state list, destroy
-.gitignore: Correctly ignoring .terraform/, *.tfstate, *.tfstate.backup
-What is Next (To Do)
- Create S3 bucket: terraform-state-shubham-2026
- Create DynamoDB table: terraform-locks with LockID as partition key
- Add backend.tf for S3 remote backend
- terraform init -migrate-state to move local state to S3
- Import existing SG: terraform import aws_security_group.imported_sg sg-0acf255a1489333b7
-Folder Structure
+Local (VS Code) -> GitHub -> EC2 (shubham) -> IAM Role (shubham-terraform-git) -> Terraform Apply -> 2nd EC2 (Terraform-VSCode-EC2)
+What I Did - Step by Step
+Launched EC2 shubham - t3.micro, Ubuntu 26.04 LTS (ami-091138d0f0d41ff90) in us-east-1
+Wrote ec2.tf in VS Code - provider aws + resource aws_instance
+Pushed to GitHub - Fixed HTTP 408 error by adding .terraform/ to .gitignore
+SSH into EC2 - Via AWS CloudShell using shub.pem key (Public IP: 13.217.142.249)
+Attached IAM Role - shubham-terraform-git via Actions > Security > Modify IAM Role
+Installed Terraform v1.15.5 on EC2 from HashiCorp repo
+Cloned repo and ran terraform apply - Successfully launched 2nd EC2 Terraform-VSCode-EC2
+Proof Screenshots - 18 Images
+All screenshots are in /screenshots folder.
+
+Launch Instance page (Name: shubham, t3.micro)
+EC2 Running (i-05b0853f652f0157a)
+ec2.tf in VS Code
+Git push with 408 error and fix
+SSH success into Ubuntu
+Git clone on EC2
+Modify IAM Role steps
+Terraform install (v1.15.5)
+terraform init, plan, apply creating 2nd EC2
+Tech Stack
+Terraform v1.15.5
+AWS EC2 t3.micro
+Ubuntu 26.04 LTS (ami-091138d0f0d41ff90)
+Git & GitHub
+IAM Roles & Instance Profile
+AWS CloudShell
+Project Structure
 terraform-project/
-├── main.tf          # EC2 resource
-├── provider.tf      # AWS provider
-├── variable.tf      # Input variables
-├── output.tf        # Outputs
-├── backend.tf       # S3 backend (coming soon)
+├── ec2.tf
 ├── .gitignore
-└── README.md
-How to Run
+├── README.md
+└── screenshots/
+    ├── screenshot_1.png to screenshot_18.png
+Commands Used
 bash
-# 1. Format & Validate
 terraform fmt
-terraform validate
-
-# 2. Init & Plan
 terraform init
+terraform validate
 terraform plan
-
-# 3. Apply
 terraform apply
-
-# 4. Check Outputs
-terraform output
 terraform state list
-
-# 5. Destroy
+terraform output
 terraform destroy
-Remote Backend (Next Step)
-backend.tf will look like this:
-
-hcl
-terraform {
-  backend "s3" {
-    bucket         = "terraform-state-shubham-2026"
-    key            = "ec2/terraform.tfstate"
-    region         = "ap-south-1"
-    dynamodb_table = "terraform-locks"
-    encrypt        = true
-  }
-}
-Then: terraform init -migrate-state
-
+Key Learning
+How to use IAM Role instead of hardcoded AWS keys (Best Practice)
+How to fix GitHub push 408 error with .gitignore
+Full workflow: Local -> GitHub -> EC2 -> Terraform -> New Resource
 Author
-Shubham - Aspiring DevOps Engineer | AWS | Terraform | Linux
+Shubham - Aspiring DevOps Engineer | AWS | Terraform
+
