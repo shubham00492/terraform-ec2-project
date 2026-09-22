@@ -1,76 +1,144 @@
-# Terraform AWS EC2 - Complete Hands-On
+<div align="center">
 
-Provisioned EC2 using Terraform from local VS Code, pushed to GitHub repo `terraform-ec2-project`, then launched 2nd EC2 via Terraform from within 1st EC2 using IAM Role - Full DevOps workflow.
+# 🏗️ Terraform AWS EC2 Deployment
 
-## Architecture
+### Infrastructure as Code | Remote State | State Locking
 
-```
-Local (VS Code - terraform-ec2-project) -> GitHub (terraform-ec2-project) -> EC2 (shubham) -> IAM Role (shubham-terraform-git) -> Terraform Apply -> 2nd EC2 (Terraform-VSCode-EC2)
-```
+![Terraform](https://img.shields.io/badge/Terraform-844FBA?style=for-the-badge&logo=terraform&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white)
+![S3](https://img.shields.io/badge/Amazon_S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white)
+![DynamoDB](https://img.shields.io/badge/DynamoDB-4053D6?style=for-the-badge&logo=amazondynamodb&logoColor=white)
 
-## What I Did - Step by Step
+*A hands-on Terraform project that provisions an EC2 instance with a clean, variable-driven config — backed by S3 remote state and DynamoDB state locking.*
 
-1. **Launched EC2 `shubham`** - t3.micro, Ubuntu 26.04 LTS (ami-091138d0f0d41ff90) in us-east-1
-2. **Wrote `ec2.tf` in VS Code** - inside `terraform-ec2-project` folder with provider aws + resource aws_instance
-3. **Pushed to GitHub** - Repo: `terraform-ec2-project` (Public) - Fixed HTTP 408 error by adding .terraform/ to .gitignore
-4. **SSH into EC2** - Via AWS CloudShell using shub.pem key (Public IP: 13.217.142.249)
-5. **Attached IAM Role** - `shubham-terraform-git` via Actions > Security > Modify IAM Role
-6. **Installed Terraform v1.15.5** on EC2 from HashiCorp repo
-7. **Cloned repo and ran `terraform apply`** - Successfully launched 2nd EC2 `Terraform-VSCode-EC2`
+</div>
 
-## Proof Screenshots - 18 Images
+---
 
-All screenshots are in `/screenshots` folder of `terraform-ec2-project` repo.
+## 📖 Overview
 
-- Launch Instance page (Name: shubham, t3.micro)
-- EC2 Running (i-05b0853f652f0157a)
-- ec2.tf in VS Code (terraform-ec2-project)
-- Git push with 408 error and fix
-- SSH success into Ubuntu
-- Git clone on EC2
-- Modify IAM Role steps
-- Terraform install (v1.15.5)
-- terraform init, plan, apply creating 2nd EC2
+This project automates the deployment of an **AWS EC2 instance** using **Terraform**, following infrastructure-as-code best practices:
 
-## Tech Stack
+- ✅ No hardcoded values — everything driven by variables
+- ✅ Auto-generated outputs (Instance ID & Public IP)
+- ✅ Remote state stored safely in **S3**
+- ✅ State locking via **DynamoDB** to prevent team conflicts
+- ✅ Clean, modular file structure
 
-- Terraform v1.15.5
-- AWS EC2 t3.micro
-- Ubuntu 26.04 LTS (ami-091138d0f0d41ff90)
-- Git & GitHub - Repo: terraform-ec2-project
-- IAM Roles & Instance Profile
-- AWS CloudShell
+---
 
-## Project Structure
+## 🧱 Architecture
 
 ```
-terraform-ec2-project/
-├── ec2.tf
-├── .gitignore
-├── README.md
-└── screenshots/
-    ├── screenshot_1.png to screenshot_18.png
+                     ┌─────────────────────┐
+                     │   Terraform CLI      │
+                     └──────────┬───────────┘
+                                │
+              ┌─────────────────┼─────────────────┐
+              ▼                                     ▼
+     ┌─────────────────┐                 ┌──────────────────────┐
+     │   AWS Provider    │                 │   S3 Bucket (State)   │
+     │  (EC2 Instance)   │                 │  + DynamoDB (Lock)    │
+     └─────────────────┘                 └──────────────────────┘
 ```
 
-## Commands Used
+---
+
+## 📁 Project Structure
+
+| File            | Purpose                                                        |
+|-----------------|------------------------------------------------------------------|
+| `provider.tf`   | AWS provider config (region pulled from variables)              |
+| `variable.tf`   | All input variables + descriptions                              |
+| `ec2.tf`        | EC2 resource + S3 backend configuration                         |
+| `output.tf`     | Outputs: `instance_id`, `public_ip`                              |
+| `README.md`     | You're here 👋                                                   |
+
+---
+
+## ⚡ Quick Start
+
+### 1️⃣ Prerequisites
+
+- [Terraform](https://developer.hashicorp.com/terraform/downloads) installed
+- AWS CLI configured → `aws configure`
+- IAM user with EC2 / S3 / DynamoDB permissions
+- Pre-created S3 bucket (globally unique name) + DynamoDB table with partition key `LockID`
+
+### 2️⃣ Clone & Configure
 
 ```bash
-terraform fmt
-terraform init
-terraform validate
-terraform plan
-terraform apply
-terraform state list
-terraform output
+git clone <your-repo-url>
+cd <repo-folder>
+```
+
+Update `variable.tf` (or add a `terraform.tfvars`) with your own AMI ID, instance type, key name, and region.
+
+Update the backend block in `ec2.tf`:
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "your-terraform-state-bucket"
+    key            = "dev/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-lock-table"
+  }
+}
+```
+
+### 3️⃣ Deploy
+
+```bash
+terraform init        # Initialize & connect to backend
+terraform fmt          # Format code
+terraform validate     # Validate syntax
+terraform plan          # Preview changes
+terraform apply         # Create resources 🚀
+```
+
+### 4️⃣ Verify
+
+Check the **AWS EC2 Console** for your running instance, and the **S3 bucket** for your remote state file.
+
+### 5️⃣ Clean Up
+
+```bash
 terraform destroy
 ```
 
-## Key Learning
+---
 
-- How to use IAM Role instead of hardcoded AWS keys (Best Practice)
-- How to fix GitHub push 408 error with .gitignore
-- Full workflow: Local (terraform-ec2-project) -> GitHub -> EC2 -> Terraform -> New Resource
+## 🎯 Key Concepts Practiced
 
-## Author
-Shubham - Aspiring DevOps Engineer | AWS | Terraform
-GitHub Repo: terraform-ec2-project (Public)
+| Concept | Description |
+|---|---|
+| 🔧 **Variables** | Reusable, environment-agnostic configuration |
+| 📤 **Outputs** | Auto-print key resource details after apply |
+| ☁️ **Remote State** | State stored in S3 instead of locally |
+| 🔒 **State Locking** | DynamoDB prevents concurrent `apply` conflicts |
+| 🔁 **Standard Workflow** | `init` → `fmt` → `validate` → `plan` → `apply` |
+
+---
+
+## ⚠️ Security Note
+
+No AWS credentials, `.tfstate` files, or real secrets are committed to this repo.
+
+**Recommended `.gitignore`:**
+```
+*.tfstate
+*.tfstate.backup
+.terraform/
+*.tfvars
+```
+
+---
+
+<div align="center">
+
+### 📌 Built as hands-on practice for mastering Terraform fundamentals on AWS
+
+⭐ If you found this useful, consider giving it a star!
+
+</div>
