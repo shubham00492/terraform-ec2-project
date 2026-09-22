@@ -1,28 +1,24 @@
-variable "region" {
-  default = "us-east-1"
-}
-variable "vpc_cidr" {
-  default = "10.0.0.0/16"
-}
-locals {
-  public_subnet_cidr = "10.0.1.0/24"
-}
-locals {
-  private_subnet_cidr = "10.0.2.0/24"
-  
-}
 variable "ami" {
-  default = "ami-0c94855ba95c71c99"
+  description = "Ubuntu 26.04 LTS AMI ID"
+  default     = "ami-091138d0f0d41ff90"
 }
 variable "instance_type" {
-  default = "t2.micro"
+  description = "EC2 instance type"
+  default     = "t3.micro"
 }
 variable "key_name" {
-  default = "shub"
+  description = "Existing key pair name"
+  default     = "shub"
 }
-variable "vpc_security_group_ids" {
-  default = ["sg-0694a98958c72f52d"]
+variable "security_group" {
+  description = "Security group ID"
+  default     = "sg-0694a98958c72f52d"
 }
-variable "instance_name" {
-  default = "my-ec2-instance"
+variable "region" {
+  description = "AWS Region"
+  default     = "us-east-1"
+}
+variable "env" {
+  description = "Environment tag"
+  default     = "dev"
 }
